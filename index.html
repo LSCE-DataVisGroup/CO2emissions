@@ -1,1 +1,392 @@
-My Page
+<!DOCTYPE html>
+<meta charset="utf-8">
+<title>CO2 Emissions 2014: Sources / Regions / Countries</title>
+<style>
+
+html {
+  font-family: Arial;
+  color: #555;
+}
+ 
+.node rect {
+  cursor: crosshair;
+  fill-opacity: 1.0;
+  shape-rendering: crispEdges;
+}
+ 
+.node text {
+  pointer-events: none;
+  fill: #555;
+}
+ 
+.link {
+  cursor: crosshair;
+  fill: none;
+  stroke: #000;
+  stroke-opacity: .5;
+}
+ 
+.link:hover {
+  stroke-opacity: 1.0 !important;
+}
+
+div.tooltip {
+  position: absolute;
+  padding: 5px;
+  text-align: center;
+  font: 12px sans-serif;
+  color: #000;
+  background: #AAA;
+  border-style: solid;
+  border-width: 2px;
+  border-color: #000;
+  border-radius: 8px;
+}
+
+.nytg-navigation li.selected {
+    background: none repeat scroll 0 0 #e9e9e9;
+    border-color: #aaa;
+    box-shadow: 0 0 4px rgba(0, 0, 0, 0.2) inset;
+    color: #000;
+}
+.nytg-navigation li:first-of-type {
+    border-radius: 4px 0 0 4px;
+}
+.nytg-navigation li:last-of-type {
+    border-radius: 0 4px 4px 0;
+    border-right: 1px solid #ccc;
+}
+
+.nytg-navigation li {
+    background: none repeat scroll 0 0 #f9f9f9;
+    border-bottom: 1px solid #ccc;
+    border-left: 1px solid #ccc;
+    border-top: 1px solid #ccc;
+    color: #999;
+    cursor: pointer;
+    float: left;
+    font-size: 14px;
+    margin: 0;
+    padding: 10px 18px;
+}
+ul {
+    list-style: outside none none;
+}
+
+</style>
+<body>
+
+<h3>
+CO2 Emissions 2014: Sources / Regions / Countries
+</h3>
+
+<ul class="nytg-navigation" style='position: absolute; left: 100px; top: 100px;'>
+<li id="TA" class="selected">MtCO2</li>
+<li id="TB">kgCO2/GDP</li>
+<li id="TC">tCO2/person</li>
+</ul>
+ 
+<p id="chart">
+ 
+<script src="d3.v3.min.js"></script>
+<script src="sankey.js"></script>
+<script>
+  
+var margin = {top: 10, right: 10, bottom: 10, left: 10},
+    width = 1200 - margin.left - margin.right,
+    height = 800 - margin.top - margin.bottom;
+ 
+var formatNumber = d3.format(".2f"),    
+    format = function(d) { return formatNumber(d) + " " + units; },
+    color = d3.scale.category20();
+ 
+// append the svg canvas to the page
+var svg = d3.select("#chart").append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+  .append("g")
+    .attr("transform", 
+          "translate(" + margin.left + "," + margin.top + ")");
+ 
+// Set the sankey diagram properties
+var sankey = d3.sankey()
+    .nodeWidth(20)
+    .nodePadding(10)
+    .size([width, height]);
+ 
+var path = sankey.link();
+
+// Arrays to hold list of countries
+Africa = ['Africa', 'Algeria', 'Angola', 'Benin', 'Botswana', 'Burkina Faso', 'Burundi', 'Cape Verde', 'Central African Republic',
+    'Chad', 'Comoros', 'Congo', "C\xf4te d'Ivoire", 'Democratic Republic of the Congo', 'Djibouti', 'Egypt', 
+    'Equatorial Guinea', 'Eritrea', 'Ethiopia', 'Gabon', 'Gambia', 'Ghana', 'Guinea', 'Guinea-Bissau', 'Kenya', 
+    'Lesotho', 'Liberia', 'Libya', 'Madagascar', 'Malawi', 'Mali', 'Mauritania', 'Mauritius', 'Morocco', 'Mozambique', 
+    'Namibia', 'Niger', 'Nigeria', 'Cameroon', 'R\xe9union', 'Rwanda', 'Sao Tome and Principe', 'Senegal', 
+    'Seychelles', 'Sierra Leone', 'Somalia', 'South Africa', 'Sudan', 'Swaziland', 'Togo', 'Tunisia', 
+    'Uganda', 'Tanzania', 'Zambia', 'Zimbabwe']; 
+Asia = ['Asia', 'Afghanistan', 'Armenia', 'Azerbaijan', 'Bangladesh', 'Bhutan', 'Brunei Darussalam', 'Cambodia', 'China', 
+    'North Korea', 'Georgia', 'Hong Kong', 'India', 'Indonesia', 'Japan', 'Kazakhstan', 'Kyrgyzstan', 'Laos', 
+    'Macao', 'Malaysia', 'Maldives', 'Mongolia', 'Myanmar', 'Nepal', 'Pakistan', 'Papua New Guinea', 
+    'Philippines', 'South Korea', 'Singapore', 'Sri Lanka', 'Taiwan', 'Tajikistan', 'Thailand', 'Timor-Leste', 
+    'Turkmenistan', 'Uzbekistan', 'Viet Nam'];
+Europe = ['Europe', 'Albania', 'Andorra', 'Austria', 'Belarus', 'Belgium', 'Bosnia and Herzegovina', 
+    'Bulgaria', 'Croatia', 'Cyprus', 'Czech Republic', 'Denmark', 'Estonia', 'Faeroe Islands', 
+    'Finland', 'France', 'Germany', 'Gibraltar', 'Greece', 'Hungary', 'Iceland', 'Ireland', 'Italy', 'Latvia', 
+    'Liechtenstein', 'Lithuania', 'Luxembourg', 'Macedonia (Republic of)', 'Malta', 'Montenegro', 'Netherlands', 
+    'Norway', 'Poland', 'Portugal', 'Moldova', 'Romania', 'Russian Federation', 'Serbia', 'Slovakia', 
+    'Slovenia', 'Spain', 'Sweden', 'Switzerland', 'Ukraine', 'United Kingdom'];
+MiddleEast = ['Middle East', 'Bahrain', 'Iraq', 'Iran', 'Israel', 'Jordan', 'Kuwait', 'Lebanon', 'Occupied Palestinian Territory',
+    'Oman', 'Qatar', 'Saudi Arabia', 'Syria', 'Turkey', 'United Arab Emirates', 'Yemen'];
+NorthAmerica = ['North America', 'Canada', 'Greenland', 'Mexico', 'Saint Pierre and Miquelon', 'United States of America'];
+Oceania = ['Oceania', 'Australia', 'Cook Islands', 'Micronesia (Federated States of)', 'Fiji', 'French Polynesia', 
+    'Kiribati', 'Marshall Islands', 'Nauru', 'New Caledonia', 'New Zealand', 'Niue', 'Palau', 
+    'Samoa', 'Solomon Islands', 'Tonga', 'Vanuatu', 'Wallis and Futuna Islands'];
+CentralAmerica = ['Central America', 'Anguilla', 'Antigua and Barbuda', 'Aruba', 'Bahamas', 'Barbados', 'Belize', 'Bermuda', 'British Virgin Islands', 
+    'Cayman Islands', 'Costa Rica', 'Cuba', 'Dominica', 'Dominican Republic', 'El Salvador', 'Grenada', 'Guadeloupe',
+    'Guatemala', 'Haiti', 'Honduras', 'Jamaica', 'Martinique', 'Montserrat', 'Netherlands Antilles', 'Nicaragua', 
+    'Panama', 'Saint Helena', 'Saint Lucia', 'Saint Kitts and Nevis', 'Saint Vincent and the Grenadines', 
+    'Trinidad and Tobago', 'Turks and Caicos Islands'];
+SouthAmerica = ['South America', 'Argentina', 'Brazil', 'Chile', 'Colombia', 'Ecuador', 'Falkland Islands (Malvinas)', 
+    'French Guiana', 'Guyana', 'Paraguay', 'Peru', 'Bolivia', 'Suriname', 'Uruguay', 'Venezuela'];
+
+Africa_color = '#FFD880';
+Asia_color = '#FF80AF';
+CentralAmerica_color = '#9FD3C8';
+Europe_color = '#A6D4FF';
+MiddleEast_color = '#E0E67F';
+NorthAmerica_color = '#C399D9';
+Oceania_color = '#FFBFDA';
+SouthAmerica_color = '#FFA899';
+CentralAmerica_color = '#9FD3C8';
+
+Coal_color = "#3B3131";
+Oil_color = "#886666";
+Gas_color = "#AEC7E8";
+GasFlaring_color = "#AEC7E8";
+Cement_color = "#666688";
+
+// http://chimera.labs.oreilly.com/books/1230000000345/ch09.html#_changing_the_data
+d3.select("#TA")
+    .on("click", function() {
+    	d3.selectAll(".nytg-navigation li").attr("class", "");
+    	d3.select(this).attr("class", "selected");
+	units = "MtCO2";
+	d3.json("emissions_MtCO2.json", function(error, graph) {
+		svg.selectAll("*").remove();
+		make(graph);
+	})
+    });
+
+d3.select("#TB")
+    .on("click", function() {
+    	d3.selectAll(".nytg-navigation li").attr("class", "");
+    	d3.select(this).attr("class", "selected");
+	units = "kgCO2/GDP";
+	d3.json("emissions_kgCO2_GDP.json", function(error, graph) {
+		svg.selectAll("*").remove();
+		make(graph);
+	})
+    });
+
+d3.select("#TC")
+    .on("click", function() {
+    	d3.selectAll(".nytg-navigation li").attr("class", "");
+    	d3.select(this).attr("class", "selected");
+	units = "tCO2/person";
+	d3.json("emissions_tCO2_person.json", function(error, graph) {
+		svg.selectAll("*").remove();
+		make(graph);
+	})
+    });
+
+// load the data
+units = "MtCO2";
+d3.json("emissions_MtCO2.json", function(error, graph) {
+	make(graph);
+});
+ 
+function make(graph){
+    var nodeMap = {};
+    graph.nodes.forEach(function(x) { nodeMap[x.name] = x; });
+    graph.links = graph.links.map(function(x) {
+      return {
+        source: nodeMap[x.source],
+        target: nodeMap[x.target],
+        value: x.value
+      };
+    });
+
+    graph.nodes.sort(function (a,b) {return d3.descending(a.value, b.value); });
+ 
+  sankey
+      .nodes(graph.nodes)
+      .links(graph.links)
+      .layout(32);
+
+// tooltip div
+  var div = d3.select("body").append("div")   
+    .attr("class", "tooltip")               
+    .style("opacity", 0);
+ 
+// add in the links
+  var link = svg.append("g").selectAll(".link")
+      .data(graph.links)
+    .enter().append("path")
+      .attr("class", "link")
+      .attr("d", path)
+      .attr("id", function(d,i){
+		d.id = i;
+		return "link-"+i;
+	})
+      .style("stroke-width", function(d) { return Math.max(1, d.dy); })
+      .style("stroke", function(d) {
+	       if (Europe.indexOf(d.target.name) != -1) return Europe_color 
+               else if (NorthAmerica.indexOf(d.target.name) != -1) return NorthAmerica_color
+               else if (CentralAmerica.indexOf(d.target.name) != -1) return CentralAmerica_color
+               else if (SouthAmerica.indexOf(d.target.name) != -1) return SouthAmerica_color
+               else if (Asia.indexOf(d.target.name) != -1) return Asia_color
+               else if (MiddleEast.indexOf(d.target.name) != -1) return MiddleEast_color
+               else if (Africa.indexOf(d.target.name) != -1) return Africa_color
+               else if (Oceania.indexOf(d.target.name) != -1) return Oceania_color
+	})
+      .sort(function(a, b) { return b.dy - a.dy; });
+ 
+// add the link tooltip
+  link.on("mouseover", function(d) {      
+            div.transition()        
+                .style("opacity", .9);      
+            div.html(d.source.name + " → " + d.target.name + 
+			"<br><b>" + format(d.value) + "</b>")  
+                .style("left", (d3.event.pageX) + "px")     
+                .style("top", (d3.event.pageY) + "px");    
+            })                  
+        .on("mouseout", function(d) {       
+            div.transition()        
+                .style("opacity", 0);   
+        });
+ 
+// add in the nodes
+  var node = svg.append("g").selectAll(".node")
+      .data(graph.nodes)
+    .enter().append("g")
+      .attr("class", "node")
+      .attr("transform", function(d) { 
+	       return "translate(" + d.x + "," + d.y + ")"; })
+    .on("click",highlight_node_links);
+ 
+// add the rectangles for the nodes
+  node.append("rect")
+      .attr("height", function(d) { return d.dy; })
+      .attr("width", sankey.nodeWidth())
+      .style("fill", function(d) { 
+	if (Europe.indexOf(d.name) != -1) return Europe_color 
+        else if (NorthAmerica.indexOf(d.name) != -1) return NorthAmerica_color
+        else if (CentralAmerica.indexOf(d.name) != -1) return CentralAmerica_color
+        else if (SouthAmerica.indexOf(d.name) != -1) return SouthAmerica_color
+        else if (Asia.indexOf(d.name) != -1) return Asia_color
+        else if (MiddleEast.indexOf(d.name) != -1) return MiddleEast_color
+        else if (Africa.indexOf(d.name) != -1) return Africa_color
+        else if (Oceania.indexOf(d.name) != -1) return Oceania_color
+        else if (d.name == "Coal") return Coal_color
+        else if (d.name == "Oil") return Oil_color
+        else if (d.name == "Gas") return Gas_color
+        else if (d.name == "Gas flaring") return GasFlaring_color
+        else if (d.name == "Cement") return Cement_color
+	})
+      .style("stroke-width", "2px")
+      .style("stroke", "#555");
+
+// add the node tooltip
+  node.on("mouseover", function(d) {      
+            div.transition()        
+                .style("opacity", .9);      
+            div.html(d.name + "<br><b>" + format(d.value) + "</b>")
+                .style("left", (d3.event.pageX) + "px")     
+                .style("top", (d3.event.pageY) + "px");    
+            })                  
+        .on("mouseout", function(d) {       
+            div.transition()        
+                .style("opacity", 0);   
+        });
+ 
+// add in the title for the nodes
+  node.append("text")
+      .attr("x", -6)
+      .attr("y", function(d) { return d.dy / 2; })
+      .attr("dy", ".35em")
+      .attr("text-anchor", "end")
+      .attr("transform", null)
+      .text(function(d) { return d.name; })
+    .filter(function(d) { return d.x < width / 2; })
+      .attr("x", 6 + sankey.nodeWidth())
+      .attr("text-anchor", "start");
+ 
+// http://bl.ocks.org/git-ashish/8959771
+function highlight_node_links(node,i){
+
+    var remainingNodes=[],
+        nextNodes=[];
+
+    var stroke_opacity = 0;
+    if( d3.select(this).attr("data-clicked") == "1" ){
+      d3.select(this).attr("data-clicked","0");
+      stroke_opacity = 0.5;
+    }else{
+      d3.select(this).attr("data-clicked","1");
+      stroke_opacity = 1.0;
+    }
+
+    var traverse = [{
+                      linkType : "sourceLinks",
+                      nodeType : "target"
+                    },{
+                      linkType : "targetLinks",
+                      nodeType : "source"
+                    }];
+
+    traverse.forEach(function(step){
+      node[step.linkType].forEach(function(link) {
+        remainingNodes.push(link[step.nodeType]);
+        highlight_link(link.id, stroke_opacity);
+      });
+
+      while (remainingNodes.length) {
+        nextNodes = [];
+        remainingNodes.forEach(function(node) {
+          node[step.linkType].forEach(function(link) {
+            nextNodes.push(link[step.nodeType]);
+            highlight_link(link.id, stroke_opacity);
+          });
+        });
+        remainingNodes = nextNodes;
+      }
+    });
+  }
+
+function highlight_link(id,opacity){
+      d3.select("#link-"+id).style("stroke-opacity", opacity);
+}
+
+
+}
+ 
+</script>
+
+<p style='width: 600px;'>
+This Sankey diagram represents CO2 emission flows from five major sources (left column) and their proportional distibution over region (middle column) and country (right column, 50 highest).
+This diagram shows the <b>latest 2014 figures</b> available from Global Carbon Atlas at <a href='http://www.globalcarbonatlas.org'>http://www.globalcarbonatlas.org</a>.
+</p>
+
+<p style='width: 600px;'>
+<i><b>Source:</b> CDIAC: Boden, TA, G Marland, and RJ Andres. 2013. Global, Regional, and National Fossil-Fuel CO2 Emissions. Carbon Dioxide Information Analysis Center (CDIAC), Oak Ridge National Laboratory, US Department of Energy, Oak Ridge, Tenn., USA doi:10.3334/CDIAC/00001_V2013
+<a href='http://cdiac.ornl.gov/trends/emis/meth_reg.html'>http://cdiac.ornl.gov/trends/emis/meth_reg.html</a>
+</i>
+</p>
+
+<p>Created by <span title="Climate and Environment Sciences Laboratory" style="font-weight:bold;">LSCE</span> &nbsp;<img src="LSCE_Icon.png" title="Climate and Environment Sciences Laboratory"/>&nbsp;&nbsp;Version 1.2 - 2015/12/09<br>
+Authors: Cathy Nangini, Patrick Brockmann<br>
+Thanks to Mike Bostock, Ashish Singh
+</p>
+
+</body>
+</html>
