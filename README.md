@@ -7,4 +7,4 @@ Authors: [Cathy Nangini](https://github.com/KatiRG), [Patrick Brockmann](https:/
 
 [Click here](http://lsce-datavisgroup.github.io/CO2emissions/) to open the visualization.
 
-![alt tag](https://cloud.githubusercontent.com/assets/1254764/11750212/774affac-a032-11e5-92bf-92520dc52b83.png)
+![alt tag](https://cloud.githubusercontent.com/assets/1254764/12923266/5f96d47e-cf55-11e5-9262-1083a7ec4a0b.png)
