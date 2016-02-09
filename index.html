@@ -336,8 +336,8 @@
                 d3.select("#chart").selectAll("div").remove(); //remove all stacked bar charts
                 d3.select('#chart').select("svg").style("display", "inline"); //un-hide Sankey
                 d3.select("#infotext2").style("display", "none"); //hide histogram info text
-
-                //d3.select("#sortButton").text("Sort").attr("class", "selected");
+                
+                d3.select("#sortButton").text("Sort");
                 units = "MtCO2";
                 d3.json("emissions_MtCO2.json", function(error, graph) {
                   svg.selectAll("*").remove();
